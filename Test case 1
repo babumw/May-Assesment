@@ -1,0 +1,64 @@
+package stepdef1;
+
+import org.json.simple.JSONObject;
+
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import io.restassured.RestAssured;
+import io.restassured.http.Method;
+import io.restassured.path.json.JsonPath;
+import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
+
+public class TC1_PostRequest {
+
+	
+	String postbody;
+	RequestSpecification postrequest;
+	Response response;
+	
+	@Given("API Address")
+	public void api_address() {
+		
+	    RestAssured.baseURI="http://restapi.adequateshop.com";
+	       
+	}
+
+	@When("make a post request with tourist details")
+	public void make_a_post_request_with_tourist_details() {
+		
+		RequestSpecification postrequest=RestAssured.given();
+		JSONObject requestparams=new JSONObject();
+		requestparams.put("tourist_name", "mike");
+		requestparams.put("tourist_email", "mike.apitest11@gmail.com");
+		requestparams.put("tourist_location", "Paris");
+		
+		postrequest.header("Content-Type","application/json;charset=utf-8");
+		postrequest.body(requestparams.toJSONString());
+		response=postrequest.request(Method.POST,"/api/Tourist");
+		
+		JsonPath jsonpath=response.jsonPath();
+		int id=response.jsonPath().getInt("id");
+		System.out.println("The id is"+id);
+	}
+	
+
+	@Then("user shoud be created")
+	public void user_shoud_be_created()
+	{
+		String postBody=response.getBody().asPrettyString();
+		System.out.println("The response is"+postBody);
+		
+	}
+
+	
+	@Then("status {int}")
+	public void status(Integer int1)
+	{
+	   int statuscode=response.getStatusCode();
+	   System.out.println("The status code is : "+statuscode);
+	  
+	}
+
+}
