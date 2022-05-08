@@ -1,0 +1,89 @@
+package stepdef2;
+
+import org.json.simple.JSONObject;
+
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import io.restassured.RestAssured;
+import io.restassured.http.Method;
+import io.restassured.path.json.JsonPath;
+import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
+import junit.framework.Assert;
+
+public class TC2 {
+	
+	String postbody;
+	RequestSpecification postrequest;
+	RequestSpecification getrequest;
+	Response response;
+	Response getresponse;
+    int id;
+	JsonPath jsonpath;
+	
+	
+	@Given("API adress")
+	public void api_adress() {
+	    
+		   RestAssured.baseURI="http://restapi.adequateshop.com";
+	}
+
+	@When("make a POST request with tourist details")
+	public void make_a_post_request_with_tourist_details() {
+		RequestSpecification postrequest=RestAssured.given();
+		
+		
+		
+		JSONObject requestparams=new JSONObject();
+		requestparams.put("tourist_name", "Thomas");
+		requestparams.put("tourist_email", "toms12@gmail.com");
+		requestparams.put("tourist_location", "London");
+		
+		postrequest.header("Content-Type","application/json;charset=utf-8");
+		postrequest.body(requestparams.toJSONString());
+		response=postrequest.request(Method.POST,"/api/Tourist");
+		
+		jsonpath=response.jsonPath();
+		id=response.jsonPath().getInt("id");
+		System.out.println("The id is"+id);
+		
+	  
+	}
+
+	@When("fetch the new created user using GET request")
+	public void fetch_the_new_created_user_using_get_request() {
+		
+		RequestSpecification getrequest=RestAssured.given();
+		getresponse=getrequest.request(Method.GET,"/api/Tourist/"+id);
+		
+		String getBody=getresponse.getBody().asPrettyString();
+		System.out.println("The created user is "+getBody);
+	   
+	  
+	}
+
+	@Then("Status code {int}")
+	public void status_code(Integer int1) {
+	    int scode=response.getStatusCode();
+	    System.out.println("Post Request"+scode);
+	    
+	    int gcode=getresponse.getStatusCode();
+	    System.out.println("Get Request"+gcode);
+	    
+	    
+	    
+	}
+
+	@Then("validate the details in the response")
+	public void validate_the_details_in_the_response() {
+		
+		Assert.assertEquals((jsonpath.getInt("id")), +id);
+		Assert.assertEquals((jsonpath.getString("tourist_name")), "Thomas");
+		Assert.assertEquals((jsonpath.getString("tourist_email")), "toms11@gmail.com");
+		Assert.assertEquals((jsonpath.getString("tourist_location")), "London");
+		
+	    
+	   
+	}
+}
