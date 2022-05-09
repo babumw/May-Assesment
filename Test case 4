@@ -1,0 +1,90 @@
+package stepdef4;
+
+import org.json.simple.JSONObject;
+
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import io.restassured.RestAssured;
+import io.restassured.http.Method;
+import io.restassured.path.json.JsonPath;
+import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
+
+public class TC4 {
+	
+	int id;
+	
+	Response gresponse;
+	Response dresponse;
+	Response presponse;
+	
+	RequestSpecification postreq;
+	RequestSpecification getrequest;
+	RequestSpecification deleterequest;
+	JsonPath jsonpath;
+	
+	
+	@Given("Delete API Address")
+	public void delete_api_address() {
+	    RestAssured.baseURI="http://restapi.adequateshop.com";
+	    
+	}
+
+	@When("make a POST request using the personal details")
+	public void make_a_post_request_using_the_personal_details() {
+		
+	   RequestSpecification postreq=RestAssured.given();
+	   JSONObject dput=new JSONObject();
+	   
+	   
+	   	dput.put("tourist_name", "Alex");
+		dput.put("tourist_email", "alexander5@gmail.com");
+		dput.put("tourist_location", "Rome");
+		
+		postreq.header("content-Type","application/json");
+		postreq.body(dput.toJSONString());
+		
+		 presponse=postreq.request(Method.POST,"/api/Tourist");
+		
+		String body=presponse.getBody().asPrettyString();
+		System.out.println("the posted data is: "+body);
+		
+		jsonpath=presponse.jsonPath();
+		id=presponse.jsonPath().getInt("id");
+		System.out.println("The id is"+id);
+		
+	}
+
+	@When("DELETE that details")
+	public void delete_that_details() {
+		
+		
+	    RequestSpecification deleterequest=RestAssured.given();
+	    
+	   dresponse=deleterequest.request(Method.DELETE,"/api/Tourist"+id);
+	   
+	   
+	}
+
+	@When("fetch the deleted user using GET request")
+	public void fetch_the_deleted_user_using_get_request() {
+		
+		  RequestSpecification getrequest=RestAssured.given();
+		  gresponse=getrequest.request(Method.GET,"/api/Tourist"+id);
+		  
+		  String body=gresponse.getBody().asPrettyString();
+		  System.out.println("The  GET response is:"+body);
+		  
+	}
+
+	@Then("status {int} and empty response")
+	public void status_and_empty_response(Integer int1) {
+		
+	  int statuscode=gresponse.getStatusCode(); 
+	  System.out.println("The GET status code is"+statuscode);
+	  
+	 
+	    
+	}
+}
